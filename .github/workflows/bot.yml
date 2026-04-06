@@ -1,14 +1,21 @@
-name: Telegram Bot Test
+name: Telegram Bot
 
 on:
   workflow_dispatch:
+  schedule:
+    - cron: '0 */6 * * *'
+      timezone: 'Europe/Istanbul'
 
 jobs:
   send-telegram:
     runs-on: ubuntu-latest
+
     steps:
-      - name: Telegram test message
+      - name: Send Telegram message
         run: |
           curl -s -X POST "https://api.telegram.org/bot${{ secrets.TELEGRAM_BOT_TOKEN }}/sendMessage" \
             -d chat_id="${{ secrets.TELEGRAM_CHAT_ID }}" \
-            --data-urlencode text="Test mesajı: GitHub Actions çalıştı."
+            --data-urlencode text="Bot çalıştı.
+Saat: $(TZ='Europe/Istanbul' date '+%d.%m.%Y %H:%M')
+Repo: ${{ github.repository }}
+Run: #${{ github.run_number }}"
