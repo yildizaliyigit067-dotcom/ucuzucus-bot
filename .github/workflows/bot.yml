@@ -9,46 +9,6 @@ jobs:
   send-flights:
     runs-on: ubuntu-latest
     steps:
+      - uses: actions/checkout@v4
       - name: Run Bot
-        run: node -e "
-          const https = require('https');
-          const BOT = '8625358368:AAGlzK3UjNVsSINpvlayBrriBhAPdN57YHg';
-          const CHAT = '-5142355031';
-          const TP = 'b93c6041444e450761fffb40cd0f6cda';
-          const MAX = 2000;
-          const ROUTES = [
-            ['IST','AYT','Istanbul-Antalya'],
-            ['IST','ADB','Istanbul-Izmir'],
-            ['IST','ESB','Istanbul-Ankara'],
-            ['IST','DLM','Istanbul-Dalaman'],
-            ['IST','BJV','Istanbul-Bodrum'],
-            ['IST','GZT','Istanbul-Gaziantep'],
-            ['IST','TZX','Istanbul-Trabzon'],
-            ['IST','VAN','Istanbul-Van']
-          ];
-          function get(url){return new Promise(r=>{https.get(url,res=>{let d='';res.on('data',c=>d+=c);res.on('end',()=>{try{r(JSON.parse(d))}catch(e){r(null)}})}).on('error',()=>r(null))})}
-          function send(text){return new Promise((res,rej)=>{const b=JSON.stringify({chat_id:CHAT,text,parse_mode:'HTML'});const o={hostname:'api.telegram.org',path:'/bot'+BOT+'/sendMessage',method:'POST',headers:{'Content-Type':'application/json','Content-Length':Buffer.byteLength(b)}};const q=https.request(o,r=>{let d='';r.on('data',c=>d+=c);r.on('end',()=>res(d))});q.on('error',rej);q.write(b);q.end()})}
-          function sleep(ms){return new Promise(r=>setTimeout(r,ms))}
-          async function main(){
-            let msg='<b>UcuzUcus Raporu</b>\n\n';
-            let found=0;
-            const dates=[];
-            for(let i=1;i<=30;i++){const d=new Date();d.setDate(d.getDate()+i);dates.push(d.toISOString().split('T')[0]);}
-            for(const [from,to,label] of ROUTES){
-              const fl=[];
-              for(const date of dates.slice(0,10)){
-                const url='https://api.travelpayouts.com/aviasales/v3/prices_for_dates?origin='+from+'&destination='+to+'&departure_at='+date+'&currency=try&limit=3&one_way=true&token='+TP;
-                const d=await get(url);
-                console.log(label,date,d&&d.data?d.data.length:'null');
-                if(d&&d.data)for(const f of d.data)if(f.price<=MAX)fl.push({price:f.price,date,link:f.link?'https://www.aviasales.com'+f.link:''});
-                await sleep(300);
-              }
-              if(fl.length){found+=fl.length;msg+=label+'\n';const best=fl.sort((a,b)=>a.price-b.price).slice(0,3);for(const f of best){msg+='  '+f.price+' TL - '+f.date+(f.link?' - '+f.link:'')+'\n';}msg+='\n';}
-            }
-            if(found===0)msg+='Bugün '+MAX+' TL alti ucus bulunamadi.';
-            else msg+=found+' ucus bulundu!';
-            const r=await send(msg);
-            console.log('Gonderildi:',r);
-          }
-          main().catch(e=>{console.error(e);process.exit(1)});
-        "
+        run: node bot.js
